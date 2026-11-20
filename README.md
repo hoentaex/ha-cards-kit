@@ -16,7 +16,7 @@
 
 ## Deutsch
 
-Kleine Karten mit genau einer Aufgabe, alle in **einer** HACS-Datei. Die erste Karte ist die **KPI-Kachel**. Look
+Kleine Karten mit genau einer Aufgabe, alle in **einer** Datei. Die erste Karte ist die **KPI-Kachel**. Look
 und Farben passen zu den Schwesterkarten
 [Oil Overview](https://github.com/hoentaex/ha-oil-overview-card),
 [Energy Overview](https://github.com/hoentaex/ha-energy-overview-card),
@@ -25,8 +25,16 @@ und Farben passen zu den Schwesterkarten
 
 ### Installation
 
-HACS → Benutzerdefinierte Repositories → `https://github.com/hoentaex/ha-cards-kit`, Typ **Dashboard** → installieren.
-Ohne HACS: `dist/ha-cards-kit.js` aus dem Release nach `www/` kopieren und als Ressource (JavaScript-Modul) eintragen.
+**Über den Marketplace:**
+
+[![Repository im Marketplace öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=hoentaex&repository=ha-cards-kit&category=plugin)
+
+oder von Hand: **Marketplace → ⋮ → Benutzerdefinierte Repositories** → `https://github.com/hoentaex/ha-cards-kit`,
+Typ **Dashboard** → *Cards Kit* installieren → Browser neu laden.
+
+**Manuell:** `ha-cards-kit.js` aus dem [letzten Release](https://github.com/hoentaex/ha-cards-kit/releases/latest)
+nach `/config/www/` kopieren, unter **Einstellungen → Dashboards → ⋮ → Ressourcen** `/local/ha-cards-kit.js` als
+**JavaScript-Modul** eintragen, Browser neu laden.
 
 ### KPI-Kachel (`custom:kpi-tile-card`)
 
@@ -85,13 +93,21 @@ grid_options:
 
 ## English
 
-Small single-purpose cards, all in **one** HACS file. The first card is the **KPI tile**. Its look and colors match
+Small single-purpose cards, all in **one** file. The first card is the **KPI tile**. Its look and colors match
 the sibling cards linked above.
 
 ### Installation
 
-HACS → Custom repositories → `https://github.com/hoentaex/ha-cards-kit`, type **Dashboard** → install. Without HACS:
-copy `dist/ha-cards-kit.js` from the release to `www/` and add it as a resource (JavaScript module).
+**Via the Marketplace:**
+
+[![Open this repository in the Marketplace](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=hoentaex&repository=ha-cards-kit&category=plugin)
+
+or by hand: **Marketplace → ⋮ → Custom repositories** → `https://github.com/hoentaex/ha-cards-kit`, type
+**Dashboard** → install *Cards Kit* → reload the browser.
+
+**Manually:** copy `ha-cards-kit.js` from the [latest release](https://github.com/hoentaex/ha-cards-kit/releases/latest)
+to `/config/www/`, add `/local/ha-cards-kit.js` as a **JavaScript module** under **Settings → Dashboards → ⋮ →
+Resources**, reload the browser.
 
 ### KPI tile (`custom:kpi-tile-card`)
 
