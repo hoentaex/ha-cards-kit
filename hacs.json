@@ -1,0 +1,7 @@
+{
+  "name": "Cards Kit",
+  "render_readme": true,
+  "content_in_root": false,
+  "filename": "ha-cards-kit.js",
+  "homeassistant": "2024.11.0"
+}
