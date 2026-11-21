@@ -50,6 +50,37 @@ export function makeHass({ lang = "de", cpuOff = false } = {}) {
     s("sensor.pve_storage", 87.5, { unit_of_measurement: "%", icon: "mdi:storage-tank", frei: "117 GB" }),
     s("sensor.pve_vms", 7, { icon: "mdi:server", gesamt: 9 }),
     s("sensor.pve_updates", 3, { icon: "mdi:update" }),
+    s("sensor.gateway_cpu", cpuOff ? 91 : 23, {
+      unit_of_measurement: "%",
+      friendly_name: "CPU",
+      icon: "mdi:chip",
+      kerne: 4,
+    }),
+    s("sensor.gateway_ram", 61, { unit_of_measurement: "%", friendly_name: "RAM", icon: "mdi:memory" }),
+    s("sensor.gateway_temperatur", cpuOff ? 74 : 48, {
+      unit_of_measurement: "°C",
+      friendly_name: "Temperatur",
+      device_class: "temperature",
+      icon: "mdi:thermometer",
+    }),
+    s("sensor.pve_01_cpu", 14, { unit_of_measurement: "%", friendly_name: "CPU", icon: "mdi:chip" }),
+    s("sensor.pve_01_ram", cpuOff ? 96 : 59, { unit_of_measurement: "%", friendly_name: "RAM", icon: "mdi:memory" }),
+    s("sensor.pve_01_disk", 18, { unit_of_measurement: "%", friendly_name: "Disk", icon: "mdi:harddisk" }),
+    s("sensor.pve_02_cpu", 1, { unit_of_measurement: "%", friendly_name: "CPU", icon: "mdi:chip" }),
+    s("sensor.pve_02_ram", 28, { unit_of_measurement: "%", friendly_name: "RAM", icon: "mdi:memory" }),
+    s("sensor.pve_02_disk", cpuOff ? "unavailable" : 1, {
+      unit_of_measurement: "%",
+      friendly_name: "Disk",
+      icon: "mdi:harddisk",
+    }),
+    s("sensor.speicher_soc", cpuOff ? 12 : 76, {
+      unit_of_measurement: "%",
+      friendly_name: "Speicher",
+      device_class: "battery",
+      icon: "mdi:battery",
+      reichweite: "bis 06:40",
+    }),
+    s("sensor.speicher_reserve", 20, { unit_of_measurement: "%" }),
   ];
   return {
     language: lang,
@@ -125,6 +156,58 @@ export const SECTIONS = [
       }),
       tile("sensor.pve_vms", 6, 1, { name: "VMs" }),
       tile("sensor.pve_updates", 6, 1, { name: "Updates", warn: { above: 0 } }),
+    ],
+  },
+];
+
+const gauge = (entity, columns, rows, extra = {}) => ({
+  type: "gauge-tile-card",
+  entity,
+  grid_options: { columns, rows },
+  ...extra,
+});
+const cpu = { warn: { above: 70 }, bad: { above: 90 } };
+const mem = { warn: { above: 80 }, bad: { above: 95 } };
+
+export const GAUGE_SECTIONS = [
+  {
+    title: "System",
+    icon: "mdi:thermometer",
+    cards: [
+      gauge("sensor.gateway_cpu", 4, 2, cpu),
+      gauge("sensor.gateway_ram", 4, 2, mem),
+      gauge("sensor.gateway_temperatur", 4, 2, { max: 100, warn: { above: 70 }, bad: { above: 85 } }),
+    ],
+  },
+  {
+    title: "pve-01",
+    icon: "mdi:server",
+    cards: [
+      gauge("sensor.pve_01_cpu", 4, 1, { layout: "compact", ...cpu }),
+      gauge("sensor.pve_01_ram", 4, 1, { layout: "compact", ...mem }),
+      gauge("sensor.pve_01_disk", 4, 1, { layout: "compact", ...mem }),
+    ],
+  },
+  {
+    title: "pve-02",
+    icon: "mdi:server",
+    cards: [
+      gauge("sensor.pve_02_cpu", 4, 1, { layout: "compact", ...cpu }),
+      gauge("sensor.pve_02_ram", 4, 1, { layout: "compact", ...mem }),
+      gauge("sensor.pve_02_disk", 4, 1, { layout: "compact", ...mem }),
+    ],
+  },
+  {
+    title: "Energie heute",
+    icon: "mdi:flash",
+    cards: [
+      gauge("sensor.autarkie_heute", 6, 3, { name: "Autarkie", color: "green" }),
+      gauge("sensor.speicher_soc", 6, 3, {
+        marker: "sensor.speicher_reserve",
+        subline: { attribute: "reichweite", prefix: "reicht " },
+        warn: { below: 30 },
+        bad: { below: 15 },
+      }),
     ],
   },
 ];

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 (2026-11-21)
+
+- **Gauge tile** (`custom:gauge-tile-card`): one value as an open 270° arc with the icon inside, one card per value
+  like the KPI tile. Two layouts: **normal** (arc centered, value and name below, 4 × 2; from 3 rows a bigger arc and
+  the sub line) and **compact** (small arc left, name and value beside it, 4 × 1).
+- Range from `min` / `max` (`max` also an entity), % values 0–100 without them; an optional **marker** as a line on
+  the arc (number or entity).
+- Icon with a tinted background by default (`icon_background: false` turns it off). Colors, warning/critical
+  thresholds, tap action and greyed-out missing values as in the KPI tile. Visual editor in German and English.
+
 ## 0.1.0 (2026-11-21)
 
 First release of the kit: one HACS file, `ha-cards-kit.js`, for small single-purpose cards.

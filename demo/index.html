@@ -27,6 +27,7 @@
       .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .col { padding: 20px; color: var(--primary-text-color); display: flex; flex-direction: column; gap: 28px; align-items: center; }
       .col > * { width: min(100%, 492px); }
+      .group { display: flex; flex-direction: column; gap: 28px; padding: 4px 0; }
       @media (max-width: 1000px) { .cols { grid-template-columns: minmax(0, 1fr); } }
       /* Stand-in for a section of HA's sections view: 12 columns, rows of 56 px, 8 px gaps, a heading card on top. */
       .section { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: 56px; gap: 8px; }
@@ -37,7 +38,7 @@
   </head>
   <body>
     <div class="bar">
-      <label><input type="checkbox" id="cpuOff" /> CPU nicht verfügbar</label>
+      <label><input type="checkbox" id="cpuOff" /> Störfall (CPU weg, hohe Last)</label>
       <label>Sprache <select id="lang"><option>de</option><option>en</option></select></label>
     </div>
     <div class="cols">
@@ -46,7 +47,7 @@
     </div>
     <script type="module">
       import { MDI } from "./icons.js";
-      import { makeHass, SECTIONS } from "./mock.js";
+      import { GAUGE_SECTIONS, makeHass, SECTIONS } from "./mock.js";
 
       // Stand-ins for Home Assistant's ha-card and ha-state-icon.
       customElements.define(
@@ -78,19 +79,26 @@
       $("cpuOff").checked = q.get("cpuOff") === "1";
       const cards = [];
       for (const theme of ["light", "dark"]) {
-        for (const sec of SECTIONS) {
+        for (const [group, list] of [["kpi", SECTIONS], ["gauge", GAUGE_SECTIONS]]) {
+        const box = document.createElement("div");
+        box.className = "group";
+        box.dataset.group = group;
+        $(theme).append(box);
+        for (const sec of list) {
           const el = document.createElement("div");
           el.className = "section";
           el.innerHTML = `<div class="heading">${svg(sec.icon)}<span>${sec.title}</span></div>`;
           for (const config of sec.cards) {
-            const card = document.createElement("kpi-tile-card");
-            card.setConfig({ type: "custom:kpi-tile-card", ...config });
+            const tag = config.type || "kpi-tile-card";
+            const card = document.createElement(tag);
+            card.setConfig({ ...config, type: `custom:${tag}` });
             card.style.setProperty("--gc", config.grid_options.columns);
             card.style.setProperty("--gr", config.grid_options.rows);
             el.append(card);
             cards.push(card);
           }
-          $(theme).append(el);
+          box.append(el);
+        }
         }
       }
       const update = () => {

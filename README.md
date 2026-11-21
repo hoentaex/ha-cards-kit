@@ -16,7 +16,7 @@
 
 ## Deutsch
 
-Kleine Karten mit genau einer Aufgabe, alle in **einer** Datei. Die erste Karte ist die **KPI-Kachel**. Look
+Kleine Karten mit genau einer Aufgabe, alle in **einer** Datei: die **KPI-Kachel** und die **Bogen-Kachel**. Look
 und Farben passen zu den Schwesterkarten
 [Oil Overview](https://github.com/hoentaex/ha-oil-overview-card),
 [Energy Overview](https://github.com/hoentaex/ha-energy-overview-card),
@@ -89,11 +89,51 @@ grid_options:
   rows: 3
 ```
 
+### Bogen-Kachel (`custom:gauge-tile-card`)
+
+Ein Wert als offener Bogen (270°, unten offen) mit dem Icon darin. Wie die KPI-Kachel eine Karte je Wert für die
+Abschnitte-Ansicht; Farben, Schwellen, Tippen und fehlende Werte verhalten sich gleich.
+
+- **Darstellung** (`layout`): **Normal** – Bogen mittig, Wert und Name darunter (Standard 4 × 2); ab 3 Reihen Höhe
+  größerer Bogen und die Unterzeile. **Kompakt** – kleiner Bogen links, Name und Wert daneben (Standard 4 × 1).
+- **Bereich:** Werte in % laufen von 0 bis 100. Für andere Einheiten `max` angeben (auch als Entity), dazu `min`.
+- **Marker** (optional): ein Strich auf dem Bogen, z. B. Reserve oder Ziel. Ohne `marker` gibt es keinen.
+
+| Hell | Dunkel |
+|---|---|
+| <img src="screenshots/gauges-light.png" alt="Bogen-Kacheln normal und kompakt, helles Theme" width="420"> | <img src="screenshots/gauges-unavailable-dark.png" alt="Bogen-Kacheln mit Warnungen und fehlendem Wert, dunkles Theme" width="420"> |
+
+| Option | Standard | Bedeutung |
+|---|---|---|
+| `entity` | – | Die Entity, deren Zustand gezeigt wird |
+| `layout` | `normal` | `normal` oder `compact` |
+| `name`, `icon`, `unit`, `digits`, `color` | aus der Entity | wie bei der KPI-Kachel |
+| `icon_background` | `true` | Icon mit getöntem Kreis |
+| `min`, `max` | 0, bei % 100 | Bereich des Bogens; `max` auch als Entity |
+| `marker` | – | Strich auf dem Bogen (Zahl oder Entity) |
+| `subline` | – | wie bei der KPI-Kachel; nur Normal ab 3 Reihen |
+| `warn`, `bad` | – | `{ above: x }` oder `{ below: x }`, `x` auch als Entity |
+| `tap_action` | `more-info` | Aktionen von Home Assistant |
+
+```yaml
+type: custom:gauge-tile-card
+entity: sensor.speicher_soc
+marker: sensor.speicher_reserve
+subline:
+  attribute: reichweite
+  prefix: "reicht "
+warn: { below: 30 }
+bad: { below: 15 }
+grid_options:
+  columns: 6
+  rows: 3
+```
+
 ---
 
 ## English
 
-Small single-purpose cards, all in **one** file. The first card is the **KPI tile**. Its look and colors match
+Small single-purpose cards, all in **one** file: the **KPI tile** and the **gauge tile**. Its look and colors match
 the sibling cards linked above.
 
 ### Installation
@@ -125,6 +165,19 @@ In the masonry view each tile is as wide as the column; use a `grid` card to put
 
 The options are the ones in the German table above (`entity`, `name`, `icon`, `unit`, `digits`, `color`, `subline`,
 `bar`, `warn`, `bad`, `tap_action`); the YAML example works as it is.
+
+### Gauge tile (`custom:gauge-tile-card`)
+
+One value as an open arc (270°, open at the bottom) with the icon inside; one card per value like the KPI tile,
+with the same colors, thresholds, tap action and missing-value behaviour.
+
+- **Layout** (`layout`): **normal** – arc centered, value and name below (default 4 × 2); from 3 rows a bigger arc
+  and the sub line. **compact** – small arc left, name and value beside it (default 4 × 1).
+- **Range:** values in % run from 0 to 100; for other units set `max` (also an entity) and `min`.
+- **Marker** (optional): a line on the arc, e.g. a reserve or a target. No `marker`, no line.
+
+Options: `entity`, `layout`, `name`, `icon`, `unit`, `digits`, `color`, `icon_background` (default `true`), `min`,
+`max`, `marker`, `subline` (normal layout from 3 rows), `warn`, `bad`, `tap_action` – see the German table above.
 
 ## Development
 

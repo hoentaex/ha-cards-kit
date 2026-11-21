@@ -19,7 +19,7 @@ try {
     ["&cpuOff=1", "-unavailable"],
   ]) {
     const page = await browser.newPage({
-      viewport: { width: 1100, height: 1600 },
+      viewport: { width: 1100, height: 2600 },
       deviceScaleFactor: 2,
       timezoneId: "Europe/Berlin",
     });
@@ -29,14 +29,20 @@ try {
     await page.locator("#light kpi-tile-card").first().waitFor();
     await page.waitForTimeout(300);
     for (const theme of ["light", "dark"]) {
-      const sections = page.locator(`#${theme} .section`);
+      const sections = page.locator(`#${theme} .group[data-group="kpi"] .section`);
       if (suffix) {
         await sections.nth(2).screenshot({ path: shot(`server${suffix}-${theme}`) });
         console.log(`saved screenshots/server${suffix}-${theme}.png`);
+        await page
+          .locator(`#${theme} .group[data-group="gauge"]`)
+          .screenshot({ path: shot(`gauges${suffix}-${theme}`) });
+        console.log(`saved screenshots/gauges${suffix}-${theme}.png`);
         continue;
       }
-      await page.locator(`#${theme}`).screenshot({ path: shot(`sections-${theme}`) });
+      await page.locator(`#${theme} .group[data-group="kpi"]`).screenshot({ path: shot(`sections-${theme}`) });
       console.log(`saved screenshots/sections-${theme}.png`);
+      await page.locator(`#${theme} .group[data-group="gauge"]`).screenshot({ path: shot(`gauges-${theme}`) });
+      console.log(`saved screenshots/gauges-${theme}.png`);
     }
     await page.close();
   }
