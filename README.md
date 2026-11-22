@@ -43,13 +43,18 @@ nach `/config/www/` kopieren, unter **Einstellungen → Dashboards → ⋮ → R
 
 ### KPI-Kachel (`custom:kpi-tile-card`)
 
-Ein Wert als eine Karte: Icon, Name, der Wert groß, eine Unterzeile und ein Balken. Gedacht für die
+Ein Wert als eine Karte: Icon, Name, der Wert groß, eine Unterzeile und unten ein Balken oder eine Trendlinie.
+Gedacht für die
 **Abschnitte-Ansicht** (Sections):
 
 - **Überschrift:** die Überschrift-Karte (Heading) von Home Assistant, mit Icon und Badges.
 - **Größe und Position:** im Layout-Tab der Karte, Standard 4 von 12 Spalten × 2 Reihen.
 - **Darstellung folgt der Höhe:** 1 Reihe kompakt (Icon links, nur der Wert), 2 Reihen Standard (Unterzeile und
-  Balken), 3 Reihen groß (Icon oben).
+  Balken oder Trend), 3 Reihen groß (Icon oben).
+- **Trend:** der Verlauf der letzten Stunden als Linie mit Fläche, unten randlos über die ganze Breite – wie das
+  Trenddiagramm der Kachel-Karte von Home Assistant, aber mit eigener Farbe. Balken **oder** Trend: Stehen beide in
+  der Konfiguration, gilt der Trend. Bei Warnung oder kritisch färbt sich die Linie mit. Braucht die
+  Verlaufs-Integration (Standard) und Zahlenwerte.
 - **Fehlende Werte:** Die Kachel bleibt stehen, ausgegraut mit „nicht verfügbar“, „unbekannt“ oder „Entity nicht
   gefunden“. So entsteht keine Lücke. Wer sie lieber ausblendet: Sichtbarkeits-Tab, Bedingung „Zustand ist nicht
   unavailable“ (dann rücken die folgenden Karten nach, am Ende einer Reihe kann eine Lücke bleiben).
@@ -73,6 +78,7 @@ In der Masonry-Ansicht ist jede Kachel so breit wie die Spalte; nebeneinander ge
 | `color` | nach Geräteklasse | Farbname von Home Assistant (`orange`, `teal`, …) oder CSS-Farbe |
 | `subline` | – | Text, oder `{ attribute }`, `{ entity }`, `{ last_changed: true }`, jeweils mit `prefix` / `suffix` |
 | `bar` | – | `{ percent: true }` oder `{ min, max }`; dazu `marker`. `min`, `max`, `marker` auch als Entity |
+| `trend` | – | Trendlinie statt Balken: `{ hours_to_show, color, detail }` oder `true`. Standard 24 h, Kachelfarbe, `detail: true` (aus: ein Punkt je Stunde) |
 | `warn`, `bad` | – | `{ above: x }` oder `{ below: x }`, `x` auch als Entity. Färbt die Kachel gelb bzw. rot |
 | `tap_action` | `more-info` | Aktionen von Home Assistant |
 
@@ -91,6 +97,23 @@ warn: { below: 800 }
 bad: { below: 500 }
 grid_options:
   columns: 8
+  rows: 3
+```
+
+| Hell | Dunkel |
+|---|---|
+| <img src="screenshots/trend-light.png" alt="KPI-Kacheln mit Trendlinie, helles Theme" width="420"> | <img src="screenshots/trend-unavailable-dark.png" alt="KPI-Kacheln mit Trendlinie, Strompreis über der Warnschwelle, dunkles Theme" width="420"> |
+
+```yaml
+type: custom:kpi-tile-card
+entity: sensor.strompreis
+digits: 3
+warn: { above: 0.3 }
+trend:
+  hours_to_show: 24
+  color: blue
+grid_options:
+  columns: 6
   rows: 3
 ```
 
@@ -160,12 +183,16 @@ Resources**, reload the browser.
 
 ### KPI tile (`custom:kpi-tile-card`)
 
-One value as one card: icon, name, the value large, a sub line and a bar. Made for the **sections view**:
+One value as one card: icon, name, the value large, a sub line and at the bottom a bar or a trend line. Made for
+the **sections view**:
 
 - **Heading:** Home Assistant's heading card, with icon and badges.
 - **Size and position:** in the card's Layout tab, default 4 of 12 columns × 2 rows.
-- **The look follows the height:** 1 row compact (icon left, value only), 2 rows standard (sub line and bar), 3 rows
-  large (icon on top).
+- **The look follows the height:** 1 row compact (icon left, value only), 2 rows standard (sub line and bar or
+  trend), 3 rows large (icon on top).
+- **Trend:** the history of the last hours as a line with a fill, flush across the bottom – like the trend graph of
+  Home Assistant's tile card, but with its own color. A bar **or** a trend: with both configured the trend wins. On
+  warning or critical the line takes that color. Needs the history integration (default) and numeric values.
 - **Missing values:** the tile stays in place, greyed out with "unavailable", "unknown" or "Entity not found", so
   there is no gap. To hide it instead, add the visibility condition "state is not unavailable" (the following cards
   move up; a gap can remain at the end of a row).
@@ -173,7 +200,8 @@ One value as one card: icon, name, the value large, a sub line and a bar. Made f
 In the masonry view each tile is as wide as the column; use a `grid` card to put tiles side by side there.
 
 The options are the ones in the German table above (`entity`, `name`, `icon`, `unit`, `digits`, `color`, `subline`,
-`bar`, `warn`, `bad`, `tap_action`); the YAML example works as it is.
+`bar`, `trend`, `warn`, `bad`, `tap_action`); the YAML examples work as they are. `trend` is
+`{ hours_to_show, color, detail }` or `true` (24 h, the tile's color, `detail: false` for one point per hour).
 
 ### Gauge tile (`custom:gauge-tile-card`)
 

@@ -23,6 +23,10 @@ ha-card.act:focus-visible { outline: 2px solid var(--primary-color, #03a9f4); ou
 .kb { position: relative; flex: none; height: 4px; margin-top: auto; border-radius: 2px; background: color-mix(in srgb, var(--kit-sub) 25%, transparent); }
 .kb i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--c); }
 .kb b { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--kit-text); opacity: .7; }
+/* Trend line: flush to the card's edges at the bottom, a line with a fading fill (as HA's tile card feature). */
+.kt { display: block; flex: 1 1 0; min-height: 18px; margin: 2px -12px -10px; color: var(--tc, var(--c)); pointer-events: none; }
+.kt svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.kt path.l { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 ha-card.warn, ha-card.bad {
   --ha-card-border-color: color-mix(in srgb, var(--c) 45%, transparent);
   --ha-card-background: color-mix(in srgb, var(--c) 8%, var(--card-background-color, #fff));
@@ -39,11 +43,12 @@ ha-card.r1 .top { display: contents; }
 ha-card.r1 .ki { grid-row: span 2; }
 ha-card.r1 .kk { font-size: 11.5px; }
 ha-card.r1 .kv { font-size: 16px; }
-ha-card.r1 .ks, ha-card.r1 .kb { display: none; }
+ha-card.r1 .ks, ha-card.r1 .kb, ha-card.r1 .kt { display: none; }
 
 /* 3 rows: big icon on top, label under it. */
 ha-card.r3 { padding: 11px 12px 12px; gap: 4px; }
 ha-card.r3 .top { flex-direction: column; align-items: flex-start; gap: 6px; }
 ha-card.r3 .ki { width: 32px; height: 32px; --mdc-icon-size: 18px; }
 ha-card.r3 .ks { white-space: normal; }
+ha-card.r3 .kt { margin-bottom: -12px; }
 `;

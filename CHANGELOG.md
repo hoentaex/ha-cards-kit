@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 (2026-11-22)
+
+- **KPI tile: trend line** (`trend`), like the trend graph of Home Assistant's tile card but with its own color:
+  the history of the last hours (`hours_to_show`, default 24) as a line with a fading fill, flush across the bottom
+  of the tile. `detail: false` draws one point per hour. Data from Home Assistant's history stream, live.
+- A bar **or** a trend at the bottom, never both: with both configured the trend wins. The editor's group "Bar" is
+  now "Bottom" with *nothing / bar (percent) / bar (range) / trend*.
+- The line takes the warning or critical color with the tile; without `color` it uses the tile's color. No trend at
+  1 row, for text states or without the history integration.
+
 ## 0.2.0 (2026-11-21)
 
 - **Gauge tile** (`custom:gauge-tile-card`): one value as an open 270° arc with the icon inside, one card per value

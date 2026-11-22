@@ -1,6 +1,6 @@
 {
   "name": "ha-cards-kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Small single-purpose Lovelace cards for Home Assistant in one bundle, starting with the KPI tile card.",
   "private": true,
   "type": "module",

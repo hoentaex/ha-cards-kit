@@ -33,6 +33,8 @@ try {
       if (suffix) {
         await sections.nth(2).screenshot({ path: shot(`server${suffix}-${theme}`) });
         console.log(`saved screenshots/server${suffix}-${theme}.png`);
+        await sections.nth(3).screenshot({ path: shot(`trend${suffix}-${theme}`) });
+        console.log(`saved screenshots/trend${suffix}-${theme}.png`);
         await page
           .locator(`#${theme} .group[data-group="gauge"]`)
           .screenshot({ path: shot(`gauges${suffix}-${theme}`) });
@@ -41,6 +43,8 @@ try {
       }
       await page.locator(`#${theme} .group[data-group="kpi"]`).screenshot({ path: shot(`sections-${theme}`) });
       console.log(`saved screenshots/sections-${theme}.png`);
+      await sections.nth(3).screenshot({ path: shot(`trend-${theme}`) });
+      console.log(`saved screenshots/trend-${theme}.png`);
       await page.locator(`#${theme} .group[data-group="gauge"]`).screenshot({ path: shot(`gauges-${theme}`) });
       console.log(`saved screenshots/gauges-${theme}.png`);
     }

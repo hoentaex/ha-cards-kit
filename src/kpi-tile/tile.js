@@ -5,6 +5,7 @@
 // inside the sibling cards). A missing or unavailable entity keeps the tile in place, greyed out, so the grid never
 // shows a gap.
 import { cssColor, esc, fmtAgo, fmtNumber, langOf, localeOf, numberOf } from "../shared.js";
+import { trendConfig } from "./trend.js";
 
 export const STRINGS = {
   de: {
@@ -144,20 +145,25 @@ export function computeTile(config, hass, now = Date.now()) {
   const unit = config.unit ?? v.unit;
   const level =
     v.num === null ? "" : hits(hass, config.bad, v.num) ? "bad" : hits(hass, config.warn, v.num) ? "warn" : "";
-  const color = level === "bad" ? BAD : level === "warn" ? WARN : cssColor(config.color) || autoColor(st);
+  const own = cssColor(config.color) || autoColor(st);
+  const color = level === "bad" ? BAD : level === "warn" ? WARN : own;
+  // Bar or trend at the bottom, never both: a trend (numeric values, 2 rows or more) wins. On warn/bad the line takes
+  // the tile's warn/bad color, else its own color, else the tile's.
+  const tr = v.num !== null && rows > 1 ? trendConfig(config) : null;
+  const trend = tr && { hours: tr.hours, detail: tr.detail, color: level ? color : cssColor(tr.color) || own };
   return {
     ...base,
     na: false,
     value: v.text,
     unit,
     sub: sublineOf(config, hass, st, locale, lang, now),
-    ...barOf(config, hass, v.num),
+    ...(trend ? { trend } : barOf(config, hass, v.num)),
     level,
     color,
   };
 }
 
-/** The tile's inner HTML. The icon element (ha-state-icon) is put into `.ki` by the card. */
+/** The tile's inner HTML. The icon element (ha-state-icon) goes into `.ki`, the trend's SVG into `.kt` (by the card). */
 export function tileHTML(t) {
   const bar = Number.isFinite(t.p)
     ? `<span class="kb"><i style="width:${t.p.toFixed(1)}%"></i>${Number.isFinite(t.m) ? `<b style="left:${t.m.toFixed(1)}%"></b>` : ""}</span>`
@@ -165,5 +171,5 @@ export function tileHTML(t) {
   return `<div class="top"><span class="ki"></span><span class="kk" title="${esc(t.name)}">${esc(t.name)}</span></div>
     <span class="kv">${esc(t.value)}${!t.na && t.unit ? `<small>${esc(t.unit)}</small>` : ""}</span>
     ${!t.na && t.sub ? `<span class="ks" title="${esc(t.sub)}">${esc(t.sub)}</span>` : ""}
-    ${t.na ? "" : bar}`;
+    ${t.na ? "" : t.trend ? `<span class="kt" style="--tc:${esc(t.trend.color)}"></span>` : bar}`;
 }

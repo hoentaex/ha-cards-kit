@@ -28,6 +28,8 @@ test("config → form → config keeps everything", () => {
     { entity: "sensor.a", bar: { percent: true, marker: 20 } },
     { entity: "sensor.a", bar: { min: 20, max: "sensor.max" } },
     { entity: "sensor.a", warn: { above: 70 }, bad: { above: 90 } },
+    { entity: "sensor.a", trend: { hours_to_show: 24 } },
+    { entity: "sensor.a", trend: { hours_to_show: 6, color: "teal", detail: false } },
   ])
     assert.deepEqual(fromFormData(toFormData(config)), config);
 });
@@ -58,4 +60,25 @@ test("schema shows only the fields of the chosen sub line source and bar type", 
     assert.ok(full.includes(n), n);
   const pct = names(editorSchema("en", { subline_type: "changed", bar_type: "percent" }));
   assert.ok(pct.includes("subline_suffix") && pct.includes("bar_marker") && !pct.includes("bar_max"));
+});
+
+test("bottom: a trend wins over a bar, switching writes only the chosen one", () => {
+  const both = toFormData({ entity: "sensor.a", bar: { max: 10 }, trend: { hours_to_show: 12 } });
+  assert.equal(both.bar_type, "trend");
+  assert.deepEqual(fromFormData(both), { entity: "sensor.a", trend: { hours_to_show: 12 } });
+  const fresh = { ...toFormData({ entity: "sensor.a" }), bar_type: "trend" };
+  assert.deepEqual(fromFormData(fresh), { entity: "sensor.a", trend: { hours_to_show: 24 } });
+  assert.deepEqual(fromFormData({ ...toFormData({ entity: "sensor.a", trend: true }), bar_type: "percent" }), {
+    entity: "sensor.a",
+    bar: { percent: true },
+  });
+  assert.deepEqual(toFormData({ entity: "sensor.a", trend: true }).trend_hours, 24);
+});
+
+test("schema: trend fields only for the trend, no marker there", () => {
+  const tr = names(editorSchema("de", { bar_type: "trend" }));
+  for (const n of ["trend_hours", "trend_detail", "trend_color"]) assert.ok(tr.includes(n), n);
+  assert.ok(!tr.includes("bar_marker") && !tr.includes("bar_max"));
+  const bar = names(editorSchema("de", { bar_type: "range" }));
+  assert.ok(!bar.includes("trend_hours"));
 });

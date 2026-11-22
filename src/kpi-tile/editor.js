@@ -1,6 +1,7 @@
-// Visual editor (ha-form) of the KPI tile. The form is flat; the card's YAML keeps the nested subline, bar, warn
-// and bad. Keys the editor does not know (grid_options, visibility, …) are kept as they are.
+// Visual editor (ha-form) of the KPI tile. The form is flat; the card's YAML keeps the nested subline, bar, trend,
+// warn and bad. Keys the editor does not know (grid_options, visibility, …) are kept as they are.
 import { isEntityId, langOf } from "../shared.js";
+import { DEFAULT_HOURS, trendConfig } from "./trend.js";
 
 const LABELS = {
   de: {
@@ -11,7 +12,7 @@ const LABELS = {
     digits: "Nachkommastellen",
     color: "Farbe",
     g_subline: "Unterzeile",
-    g_bar: "Balken",
+    g_bar: "Unten",
     g_thresholds: "Schwellen",
     g_action: "Tippen",
     subline_type: "Quelle",
@@ -26,9 +27,13 @@ const LABELS = {
     sl_entity: "Andere Entity",
     sl_changed: "Zuletzt geändert",
     bar_type: "Art",
-    bar_none: "Kein Balken",
-    bar_percent: "Wert ist Prozent",
-    bar_range: "Bereich Min–Max",
+    bar_none: "Nichts",
+    bar_percent: "Balken: Wert ist Prozent",
+    bar_range: "Balken: Bereich Min–Max",
+    bar_trend: "Trend (Verlauf)",
+    trend_hours: "Zeitraum (Stunden)",
+    trend_color: "Linienfarbe",
+    trend_detail: "Detail",
     bar_min: "Min",
     bar_max: "Max",
     bar_max_entity: "Max aus Entity",
@@ -45,6 +50,9 @@ const LABELS = {
     h_bar_max_entity: "Statt einer Zahl, z. B. die Tankgröße",
     h_bar_marker: "Strich auf dem Balken, z. B. Reserve oder Ziel",
     h_unit: "Nur die Anzeige; umrechnen (W → kW) in den Entity-Einstellungen",
+    h_bar_type: "Balken oder Trend, nicht beides. Bei 1 Reihe Höhe ohne beides",
+    h_trend_color: "Ohne Angabe die Kachelfarbe; bei Warnung oder kritisch färbt sich die Linie mit",
+    h_trend_detail: "Aus: ein Punkt je Stunde (Mittelwert)",
   },
   en: {
     entity: "Entity",
@@ -54,7 +62,7 @@ const LABELS = {
     digits: "Decimals",
     color: "Color",
     g_subline: "Sub line",
-    g_bar: "Bar",
+    g_bar: "Bottom",
     g_thresholds: "Thresholds",
     g_action: "Tap",
     subline_type: "Source",
@@ -69,9 +77,13 @@ const LABELS = {
     sl_entity: "Another entity",
     sl_changed: "Last changed",
     bar_type: "Type",
-    bar_none: "No bar",
-    bar_percent: "Value is a percentage",
-    bar_range: "Range min–max",
+    bar_none: "Nothing",
+    bar_percent: "Bar: value is a percentage",
+    bar_range: "Bar: range min–max",
+    bar_trend: "Trend (history)",
+    trend_hours: "Period (hours)",
+    trend_color: "Line color",
+    trend_detail: "Detail",
     bar_min: "Min",
     bar_max: "Max",
     bar_max_entity: "Max from an entity",
@@ -88,10 +100,26 @@ const LABELS = {
     h_bar_max_entity: "Instead of a number, e.g. the tank size",
     h_bar_marker: "Line on the bar, e.g. a reserve or a target",
     h_unit: "Display only; convert (W → kW) in the entity settings",
+    h_bar_type: "A bar or a trend, not both. Neither at a height of 1 row",
+    h_trend_color: "Empty: the tile's color; on warning or critical the line takes that color",
+    h_trend_detail: "Off: one point per hour (mean)",
   },
 };
 
-const MANAGED = ["entity", "name", "icon", "unit", "digits", "color", "subline", "bar", "warn", "bad", "tap_action"];
+const MANAGED = [
+  "entity",
+  "name",
+  "icon",
+  "unit",
+  "digits",
+  "color",
+  "subline",
+  "bar",
+  "trend",
+  "warn",
+  "bad",
+  "tap_action",
+];
 const grid = (...schema) => ({ type: "grid", name: "", schema });
 const group = (title, schema) => ({ type: "expandable", name: "", title, flatten: true, schema });
 const select = (name, options) => ({ name, selector: { select: { mode: "dropdown", options } } });
@@ -120,9 +148,17 @@ export const editorSchema = (lang, data = {}) => {
   if (sl === "entity") sublineFields.push(ent("subline_entity"));
   if (["attribute", "entity", "changed"].includes(sl))
     sublineFields.push(grid(text("subline_prefix"), text("subline_suffix")));
-  const barFields = [select("bar_type", opts(["none", "percent", "range"], "bar_"))];
+  const barFields = [select("bar_type", opts(["none", "percent", "range", "trend"], "bar_"))];
   if (bar === "range") barFields.push(grid(num("bar_min"), num("bar_max")), ent("bar_max_entity"));
-  if (bar !== "none") barFields.push(grid(num("bar_marker"), ent("bar_marker_entity")));
+  if (bar === "percent" || bar === "range") barFields.push(grid(num("bar_marker"), ent("bar_marker_entity")));
+  if (bar === "trend")
+    barFields.push(
+      grid(
+        { name: "trend_hours", selector: { number: { min: 1, max: 720, step: 1, mode: "box" } } },
+        { name: "trend_detail", selector: { boolean: {} } },
+      ),
+      { name: "trend_color", selector: { ui_color: {} } },
+    );
   return [
     { name: "entity", required: true, selector: { entity: {} } },
     grid(text("name"), { name: "icon", selector: { icon: {} }, context: { icon_entity: "entity" } }),
@@ -140,6 +176,9 @@ export const editorSchema = (lang, data = {}) => {
 
 const HELPERS = {
   subline_type: "h_subline_type",
+  bar_type: "h_bar_type",
+  trend_color: "h_trend_color",
+  trend_detail: "h_trend_detail",
   bar_max_entity: "h_bar_max_entity",
   bar_marker: "h_bar_marker",
   unit: "h_unit",
@@ -171,7 +210,12 @@ export const toFormData = (config = {}) => {
   }
   const b = config.bar;
   d.bar_type = "none";
-  if (b && typeof b === "object") {
+  const tr = trendConfig(config);
+  if (tr) {
+    // A trend wins over a bar (as in the card).
+    Object.assign(d, { bar_type: "trend", trend_hours: tr.hours, trend_detail: tr.detail });
+    if (tr.color) d.trend_color = tr.color;
+  } else if (b && typeof b === "object") {
     d.bar_type = b.percent ? "percent" : "range";
     if (!b.percent) {
       if (b.min !== undefined) d.bar_min = b.min;
@@ -217,6 +261,13 @@ export const fromFormData = (d, base = {}) => {
     if (filled(d.bar_marker_entity)) bar.marker = d.bar_marker_entity;
     else if (filled(d.bar_marker)) bar.marker = Number(d.bar_marker);
     config.bar = bar;
+  }
+  if (d.bar_type === "trend") {
+    const h = Number(d.trend_hours);
+    const trend = { hours_to_show: Number.isFinite(h) && h > 0 ? h : DEFAULT_HOURS };
+    if (filled(d.trend_color)) trend.color = d.trend_color;
+    if (d.trend_detail === false) trend.detail = false;
+    config.trend = trend;
   }
   for (const lv of ["warn", "bad"])
     if (filled(d[`${lv}_value`]))

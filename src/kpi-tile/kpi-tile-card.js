@@ -1,5 +1,6 @@
-// custom:kpi-tile-card – one KPI as one card: icon, name, the value large, a sub line and a bar.
+// custom:kpi-tile-card – one KPI as one card: icon, name, the value large, a sub line and a bar or a trend line.
 import { computeTile, rowsOf, tileHTML } from "./tile.js";
+import { historyPoints, historyRequest, mergePoints, trendConfig, trendPath, trendSVG } from "./trend.js";
 import { STYLE } from "./styles.js";
 import "./editor.js";
 
@@ -10,6 +11,8 @@ export class KpiTileCard extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._sig = "";
+    this._trendKey = "";
+    this._points = [];
   }
 
   static getConfigElement() {
@@ -34,6 +37,7 @@ export class KpiTileCard extends HTMLElement {
     this._config = { ...config };
     this._sig = "";
     this._render();
+    this._syncTrend();
   }
 
   set hass(hass) {
@@ -43,6 +47,7 @@ export class KpiTileCard extends HTMLElement {
       this._sig = sig;
       this._render();
     } else if (this._icon) this._icon.hass = hass;
+    this._syncTrend();
   }
 
   get hass() {
@@ -58,16 +63,53 @@ export class KpiTileCard extends HTMLElement {
   }
 
   connectedCallback() {
-    // The "x minutes ago" sub line ages without a state change.
+    // The "x minutes ago" sub line ages and the trend's window moves on without a state change.
     if (!this._timer)
       this._timer = setInterval(() => {
-        if (this._config?.subline?.last_changed) this._render();
+        if (this._config?.subline?.last_changed || this._trendKey) this._render();
       }, 60_000);
+    this._syncTrend();
   }
 
   disconnectedCallback() {
     clearInterval(this._timer);
     this._timer = null;
+    this._syncTrend();
+  }
+
+  /**
+   * Keeps one subscription to Home Assistant's history stream while the card is shown with a trend: a new one when
+   * the entity or the window changes, none without a trend, at 1 row, without the history integration or when hidden.
+   */
+  _syncTrend() {
+    const c = this._config;
+    const t = c && trendConfig(c);
+    const comps = this._hass?.config?.components;
+    const ok =
+      t &&
+      c.entity &&
+      this.isConnected &&
+      this._hass?.connection &&
+      rowsOf(c) > 1 &&
+      (!comps || comps.includes("history"));
+    const key = ok ? `${c.entity}|${t.hours}` : "";
+    if (key === this._trendKey) return;
+    this._trendSub?.then((unsub) => unsub?.()).catch(() => undefined);
+    this._trendSub = null;
+    this._trendKey = key;
+    this._points = [];
+    if (!key) return;
+    const entity = c.entity;
+    this._trendSub = this._hass.connection
+      .subscribeMessage(
+        (msg) => {
+          if (this._trendKey !== key) return;
+          this._points = mergePoints(this._points, historyPoints(msg, entity), t.hours);
+          this._render();
+        },
+        historyRequest(entity, t.hours),
+      )
+      .catch(() => undefined);
   }
 
   /** Re-render only when a state the tile reads (or the language) changed. */
@@ -129,6 +171,8 @@ export class KpiTileCard extends HTMLElement {
     this._icon.stateObj = t.stateObj;
     this._icon.icon = t.icon || undefined;
     this._card.querySelector(".ki").append(this._icon);
+    const kt = this._card.querySelector(".kt");
+    if (kt) kt.innerHTML = trendSVG(trendPath(this._points, t.trend));
   }
 
   /** Tap: handed to Home Assistant's action handling (more-info by default, navigate, perform-action, …). */
