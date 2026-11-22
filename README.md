@@ -23,6 +23,11 @@ und Farben passen zu den Schwesterkarten
 [Central Heating](https://github.com/hoentaex/ha-central-heating-card) und
 [Tibber Battery](https://github.com/hoentaex/ha-tibber-battery-card).
 
+> [!WARNING]
+> **Privates Hobbyprojekt.** Die Karten sind für meine eigene Installation entstanden und werden in der Freizeit
+> gepflegt. Es gibt keine Gewährleistung und keinen Support: **Die Nutzung erfolgt auf eigene Gefahr.**
+> Die Karten lesen nur Zustände aus Home Assistant – sie schalten nichts.
+
 ### Installation
 
 **Über den Marketplace:**
@@ -135,6 +140,10 @@ grid_options:
 
 Small single-purpose cards, all in **one** file: the **KPI tile** and the **gauge tile**. Its look and colors match
 the sibling cards linked above.
+
+> [!WARNING]
+> **Private hobby project**, built for my own installation and maintained in spare time, without warranty or
+> support: **use at your own risk.** The cards only read states – they never switch anything.
 
 ### Installation
 
